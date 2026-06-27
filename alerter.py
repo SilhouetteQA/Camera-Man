@@ -45,7 +45,7 @@ class AlertManager:
         if event_type == "sedentary":
             message = "你已经久坐超过 60 分钟，起身活动一下吧"
         if event_type == "phone_use":
-            message = "你已经看手机超过 20 分钟，放下手机休息一下吧"
+            message = "你已经看手机超过 10 分钟，放下手机休息一下吧"
 
         # 弹窗在独立线程，不阻塞主循环
         threading.Thread(target=_show_popup, args=(title, message), daemon=True).start()

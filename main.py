@@ -62,6 +62,27 @@ class SedentaryTimer:
         return False
 
 
+class PhoneTimer:
+    """手机使用计时器"""
+    def __init__(self, config: AppConfig):
+        self.threshold_minutes = config.phone_use_threshold
+        self.minutes = 0
+        self.alerted = False
+
+    def tick(self, phone_use: bool):
+        if phone_use:
+            self.minutes += 1
+        else:
+            self.minutes = 0
+            self.alerted = False
+
+    def should_alert(self) -> bool:
+        if self.minutes >= self.threshold_minutes and not self.alerted:
+            self.alerted = True
+            return True
+        return False
+
+
 class App:
     def __init__(self):
         self.config = AppConfig()
@@ -72,6 +93,7 @@ class App:
         self.vision = VisionClient(self.config)
         self.state_machine = StateMachine(self.config)
         self.sedentary = SedentaryTimer(self.config)
+        self.phone_timer = PhoneTimer(self.config)
         self._running = False
         self._loop_thread = None
 
@@ -91,6 +113,8 @@ class App:
         # 此时 _loop 已退出, 安全重置计时器
         self.sedentary.minutes = 0
         self.sedentary.alerted = False
+        self.phone_timer.minutes = 0
+        self.phone_timer.alerted = False
 
     def toggle_vision(self):
         self.config.vision_verify_enabled = not self.config.vision_verify_enabled
@@ -158,6 +182,8 @@ class App:
                 confirmed = self.state_machine.update(result)
 
                 for event_type in confirmed:
+                    if event_type == "phone_use":
+                        continue  # 手机使用走累计计时
                     if self.alerter.should_alert(event_type):
                         self.alerter.notify(event_type, "severe")
                     self.storage.record(event_type, "severe", result.confidence, "")
@@ -167,11 +193,15 @@ class App:
                 if minute_counter >= 12:
                     minute_counter = 0
                     self.sedentary.tick(result.person_present)
+                    self.phone_timer.tick(result.phone_use and result.person_present)
                     if result.person_present:
                         self.storage.record_sitting_minute()
                     if self.sedentary.should_alert():
                         self.alerter.notify("sedentary", "severe")
                         self.storage.record("sedentary", "severe", 1.0, "")
+                    if self.phone_timer.should_alert():
+                        self.alerter.notify("phone_use", "severe")
+                        self.storage.record("phone_use", "severe", 1.0, "")
 
                 time.sleep(self.config.sample_interval)
         except Exception as e:
