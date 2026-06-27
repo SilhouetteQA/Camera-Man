@@ -6,3 +6,4 @@ data/
 .env
 .venv/
 venv/
+.mediapipe_models/
