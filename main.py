@@ -63,18 +63,24 @@ class SedentaryTimer:
 
 
 class PhoneTimer:
-    """手机使用计时器"""
+    """手机使用计时器，短暂抬头(2分钟内)不重置累计"""
     def __init__(self, config: AppConfig):
         self.threshold_minutes = config.phone_use_threshold
         self.minutes = 0
+        self.absent_minutes = 0
         self.alerted = False
 
     def tick(self, phone_use: bool):
         if phone_use:
             self.minutes += 1
+            self.absent_minutes = 0
         else:
-            self.minutes = 0
-            self.alerted = False
+            self.absent_minutes += 1
+            # 连续离开超过 2 分钟才重置
+            if self.absent_minutes > 2:
+                self.minutes = 0
+                self.absent_minutes = 0
+                self.alerted = False
 
     def should_alert(self) -> bool:
         if self.minutes >= self.threshold_minutes and not self.alerted:
