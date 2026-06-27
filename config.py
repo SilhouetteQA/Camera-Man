@@ -7,8 +7,8 @@ class AppConfig:
     camera_device_id: int = 0
     sample_interval: float = 5.0
     slouch_threshold: float = 4.0
-    lean_forward_threshold: float = 10.0
-    head_tilt_threshold: float = 4.0
+    lean_forward_threshold: float = 15.0
+    head_tilt_threshold: float = 6.0
     sedentary_threshold: int = 60
     phone_use_threshold: int = 10
     debounce_frames: int = 3
