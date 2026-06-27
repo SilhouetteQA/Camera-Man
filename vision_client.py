@@ -1,9 +1,7 @@
 import os
 import time
-import base64
 import json
 import urllib.request
-import urllib.error
 from config import AppConfig
 
 
@@ -18,6 +16,9 @@ class VisionClient:
         return bool(self._api_key)
 
     def verify(self, frame_b64: str, local_result) -> dict | None:
+        if not self.config.vision_verify_enabled:
+            return None
+
         if not self.is_available:
             return None
 
@@ -64,10 +65,9 @@ class VisionClient:
             with urllib.request.urlopen(req, timeout=5) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
                 content = data["choices"][0]["message"]["content"]
-                judgment = json.loads(content)
                 return {
                     "verified": True,
-                    "judgment": judgment,
+                    "judgment": content,
                     "raw": data,
                 }
         except Exception:

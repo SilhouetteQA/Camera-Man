@@ -30,6 +30,6 @@ class TestVisionClient:
         client = VisionClient(cfg)
         # 模拟一次调用后在冷却期内再次调用
         client._last_verify_time = time.time()
-        # 不应该实际发 HTTP 请求
-        # 但我们至少验证冷却逻辑存在
-        assert client._last_verify_time > 0
+        # 冷却期内调用 verify 应返回 None
+        result = client.verify("fake_b64", None)
+        assert result is None
