@@ -23,7 +23,6 @@ class StateMachine:
 
     def update(self, result) -> list:
         """返回待触发的告警类型列表"""
-        events = []
         all_types = ["slouch", "lean_forward", "head_tilt"]
 
         for t in all_types:
@@ -78,18 +77,22 @@ class App:
     def start(self):
         self.camera.start()
         self._running = True
-        threading.Thread(target=self._loop, daemon=True).start()
+        self._loop_thread = threading.Thread(target=self._loop, daemon=True)
+        self._loop_thread.start()
 
     def pause(self):
         self._running = False
+        # 等待 daemon 线程退出后再操作共享状态 (避免 SedentaryTimer 竞态)
+        self._loop_thread.join(timeout=1.0)
         self.camera.stop()
         self.analyzer.reset()
+        # 此时 _loop 已退出, 安全重置久坐计时器
         self.sedentary.minutes = 0
         self.sedentary.alerted = False
 
     def exit(self):
+        # camera.stop() 由 pause() 负责, 此处无需重复调用
         self._running = False
-        self.camera.stop()
 
     def _parse_m3_judgment(self, content) -> dict:
         """解析 M3 返回的 JSON 字符串为字典"""
@@ -103,54 +106,57 @@ class App:
         return {}
 
     def _loop(self):
-        minute_counter = 0
-        while self._running:
-            frame = self.camera.capture()
-            if frame is None:
-                time.sleep(0.5)
-                continue
+        try:
+            minute_counter = 0
+            while self._running:
+                frame = self.camera.capture()
+                if frame is None:
+                    time.sleep(0.5)
+                    continue
 
-            result = self.analyzer.analyze(frame)
+                result = self.analyzer.analyze(frame)
 
-            # MinimaX M3 二次验证
-            if self.vision.is_available and result.person_present:
-                _, buf = cv2.imencode(".jpg", frame)
-                frame_b64 = base64.b64encode(buf).decode("utf-8")
-                verification = self.vision.verify(frame_b64, result)
-                if verification:
-                    m3_raw = verification["judgment"]
-                    m3 = self._parse_m3_judgment(m3_raw)
-                    # 对比: 如果 M3 判断不一致，以 M3 为准
-                    result.slouch = m3.get("slouch", result.slouch)
-                    result.lean_forward = m3.get("lean_forward", result.lean_forward)
-                    result.head_tilt = m3.get("head_tilt", result.head_tilt)
-                    result.person_present = m3.get("person_present", result.person_present)
-                    result.triggered = [
-                        t for t in ["slouch", "lean_forward", "head_tilt"]
-                        if getattr(result, t)
-                    ]
-                    result.severity = "severe" if result.triggered else None
+                # MinimaX M3 二次验证
+                if self.vision.is_available and result.person_present:
+                    _, buf = cv2.imencode(".jpg", frame)
+                    frame_b64 = base64.b64encode(buf).decode("utf-8")
+                    verification = self.vision.verify(frame_b64, result)
+                    if verification:
+                        m3_raw = verification["judgment"]
+                        m3 = self._parse_m3_judgment(m3_raw)
+                        # 对比: 如果 M3 判断不一致，以 M3 为准
+                        result.slouch = m3.get("slouch", result.slouch)
+                        result.lean_forward = m3.get("lean_forward", result.lean_forward)
+                        result.head_tilt = m3.get("head_tilt", result.head_tilt)
+                        result.person_present = m3.get("person_present", result.person_present)
+                        result.triggered = [
+                            t for t in ["slouch", "lean_forward", "head_tilt"]
+                            if getattr(result, t)
+                        ]
+                        result.severity = "severe" if result.triggered else None
 
-            # 去抖
-            confirmed = self.state_machine.update(result)
+                # 去抖
+                confirmed = self.state_machine.update(result)
 
-            for event_type in confirmed:
-                if self.alerter.should_alert(event_type):
-                    self.alerter.notify(event_type, "severe")
-                self.storage.record(event_type, "severe", result.confidence, "")
+                for event_type in confirmed:
+                    if self.alerter.should_alert(event_type):
+                        self.alerter.notify(event_type, "severe")
+                    self.storage.record(event_type, "severe", result.confidence, "")
 
-            # 久坐计时 (约每 12 帧 = 60 秒, 5 秒采样)
-            minute_counter += 1
-            if minute_counter >= 12:
-                minute_counter = 0
-                self.sedentary.tick(result.person_present)
-                if result.person_present:
-                    self.storage.record_sitting_minute()
-                if self.sedentary.should_alert():
-                    self.alerter.notify("sedentary", "severe")
-                    self.storage.record("sedentary", "severe", 1.0, "")
+                # 久坐计时 (约每 12 帧 = 60 秒, 5 秒采样)
+                minute_counter += 1
+                if minute_counter >= 12:
+                    minute_counter = 0
+                    self.sedentary.tick(result.person_present)
+                    if result.person_present:
+                        self.storage.record_sitting_minute()
+                    if self.sedentary.should_alert():
+                        self.alerter.notify("sedentary", "severe")
+                        self.storage.record("sedentary", "severe", 1.0, "")
 
-            time.sleep(self.config.sample_interval)
+                time.sleep(self.config.sample_interval)
+        except Exception as e:
+            print(f"监控循环异常: {e}")
 
 
 def main():

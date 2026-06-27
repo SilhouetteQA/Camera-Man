@@ -1,5 +1,4 @@
 # tray_ui.py
-import threading
 from PIL import Image, ImageDraw
 import pystray
 

@@ -1,11 +1,13 @@
 import cv2
 import numpy as np
+import threading
 
 
 class CameraService:
     def __init__(self, device_id: int = 0):
         self.device_id = device_id
         self._cap = None
+        self._lock = threading.Lock()
 
     @property
     def is_running(self) -> bool:
@@ -22,14 +24,16 @@ class CameraService:
         return True
 
     def capture(self) -> np.ndarray | None:
-        if not self.is_running:
-            return None
-        ret, frame = self._cap.read()
-        if not ret or frame is None:
-            return None
-        return frame
+        with self._lock:
+            if not self.is_running:
+                return None
+            ret, frame = self._cap.read()
+            if not ret or frame is None:
+                return None
+            return frame
 
     def stop(self):
-        if self._cap is not None:
-            self._cap.release()
-            self._cap = None
+        with self._lock:
+            if self._cap is not None:
+                self._cap.release()
+                self._cap = None
