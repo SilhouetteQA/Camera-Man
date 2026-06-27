@@ -124,14 +124,20 @@ class App:
         self._running = False
 
     def _parse_m3_judgment(self, content) -> dict:
-        """解析 M3 返回的 JSON 字符串为字典"""
+        """解析 M3 返回内容（可能包含 <think> 标签），提取 JSON"""
         if isinstance(content, dict):
             return content
         if isinstance(content, str):
-            try:
-                return json.loads(content)
-            except (json.JSONDecodeError, TypeError):
-                pass
+            # 处理 <think>...</think> 包裹的情况
+            if "</think>" in content:
+                content = content.split("</think>")[-1].strip()
+            # 尝试找到第一个 JSON 对象
+            brace = content.find("{")
+            if brace >= 0:
+                try:
+                    return json.loads(content[brace:])
+                except (json.JSONDecodeError, TypeError):
+                    pass
         return {}
 
     def _loop(self):
@@ -191,10 +197,21 @@ class App:
 
                 time.sleep(self.config.sample_interval)
         except Exception as e:
+            import traceback
             print(f"监控循环异常: {e}")
+            traceback.print_exc()
 
 
 def main():
+    try:
+        _main()
+    except Exception as e:
+        import traceback
+        print(f"程序异常退出: {e}")
+        traceback.print_exc()
+
+
+def _main():
     app = App()
     # 用可变容器共享 vision 启用状态，供托盘菜单 checked 回调读取
     vision_state = [False]
