@@ -6,8 +6,8 @@ class TestAppConfig:
         cfg = AppConfig()
         assert cfg.camera_device_id == 0
         assert cfg.sample_interval == 5.0
-        assert cfg.slouch_threshold == 15.0
-        assert cfg.lean_forward_threshold == 15.0
+        assert cfg.slouch_threshold == 25.0
+        assert cfg.lean_forward_threshold == 25.0
         assert cfg.head_tilt_threshold == 10.0
         assert cfg.sedentary_threshold == 60
         assert cfg.phone_use_threshold == 20
