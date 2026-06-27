@@ -108,23 +108,13 @@ def _check_head_tilt(landmarks: np.ndarray, threshold: float) -> bool:
 
 
 def _check_phone_use(landmarks: np.ndarray) -> bool:
-    """手机使用判定: 手腕靠近头部 + 头部下倾"""
+    """手机使用判定: 头部明显下倾，鼻子大幅偏离正常位置靠近肩膀"""
     nose = landmarks[0]
-    left_wrist = landmarks[15]
-    right_wrist = landmarks[16]
     shoulder_mid = _midpoint(landmarks[11], landmarks[12])
 
-    # 条件1: 任意手腕距离鼻子较近 (归一化坐标阈值 ~0.18)
-    wrist_to_nose = min(
-        float(np.linalg.norm(left_wrist[:2] - nose[:2])),
-        float(np.linalg.norm(right_wrist[:2] - nose[:2])),
-    )
-    hand_near_face = wrist_to_nose < 0.18
-
-    # 条件2: 头部下倾 (鼻子 y 坐标低于肩膀中点)
-    head_down = nose[1] > shoulder_mid[1]
-
-    return hand_near_face and head_down
+    # 鼻子与肩膀的垂直距离: 正常看屏幕时约 0.30，低头看手机时明显缩小
+    nose_to_shoulder = shoulder_mid[1] - nose[1]
+    return nose_to_shoulder < 0.22
 
 
 def _classify_posture(landmarks: np.ndarray, config: AppConfig) -> PostureResult:
