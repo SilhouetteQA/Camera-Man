@@ -13,8 +13,10 @@ class AppConfig:
     phone_use_threshold: int = 20
     debounce_frames: int = 3
     cooldown_minutes: int = 5
+    vision_verify_enabled: bool = False  # 托盘菜单手动开关
     vision_verify_cooldown: int = 30
 
     @property
-    def vision_verify_enabled(self) -> bool:
+    def minmax_api_available(self) -> bool:
+        """环境变量中是否有 API Key（仅表示可用，不表示启用）"""
         return "minmax_api" in os.environ

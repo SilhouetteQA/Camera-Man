@@ -116,6 +116,9 @@ class App:
         self.phone_timer.minutes = 0
         self.phone_timer.alerted = False
 
+    def toggle_vision(self):
+        self.config.vision_verify_enabled = not self.config.vision_verify_enabled
+
     def exit(self):
         # camera.stop() 由 pause() 负责, 此处无需重复调用
         self._running = False
@@ -142,8 +145,8 @@ class App:
 
                 result = self.analyzer.analyze(frame)
 
-                # MinimaX M3 二次验证
-                if self.vision.is_available and result.person_present:
+                # MinimaX M3 二次验证（需同时满足：用户启用 + API Key 存在）
+                if self.config.vision_verify_enabled and self.vision.is_available and result.person_present:
                     _, buf = cv2.imencode(".jpg", frame)
                     frame_b64 = base64.b64encode(buf).decode("utf-8")
                     verification = self.vision.verify(frame_b64, result)
@@ -193,10 +196,20 @@ class App:
 
 def main():
     app = App()
+    # 用可变容器共享 vision 启用状态，供托盘菜单 checked 回调读取
+    vision_state = [False]
+
+    def on_toggle_vision():
+        app.toggle_vision()
+        vision_state[0] = app.config.vision_verify_enabled
+
     controller = TrayController(
         on_start=app.start,
         on_pause=app.pause,
         on_exit=app.exit,
+        on_toggle_vision=on_toggle_vision,
+        vision_state=vision_state,
+        minmax_available=app.config.minmax_api_available,
     )
     controller.run()
 
