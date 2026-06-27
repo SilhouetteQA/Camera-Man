@@ -34,28 +34,26 @@ def make_normal_landmarks():
 
 
 def make_slouch_landmarks():
-    """驼背: 肩膀前移, 耳朵相对位置改变"""
+    """驼背: 头部前倾下沉, 耳-肩-髋连线偏离垂直线, 使角度偏差 > 15 度"""
     lm = np.zeros((33, 4))
-    lm[0] = make_landmark(0.5, 0.3)
-    lm[7] = make_landmark(0.44, 0.32)
-    lm[8] = make_landmark(0.56, 0.32)
-    # 肩膀前移 (x 更靠近中心)
-    lm[11] = make_landmark(0.44, 0.48)
-    lm[12] = make_landmark(0.56, 0.48)
-    lm[23] = make_landmark(0.42, 0.75)
-    lm[24] = make_landmark(0.58, 0.75)
+    lm[0] = make_landmark(0.53, 0.3)     # 鼻子随头部偏移
+    lm[7] = make_landmark(0.42, 0.42)    # 左耳 — 头部下沉且右偏
+    lm[8] = make_landmark(0.64, 0.42)    # 右耳 — 头部下沉且右偏
+    lm[11] = make_landmark(0.44, 0.48)   # 左肩
+    lm[12] = make_landmark(0.56, 0.48)   # 右肩
+    lm[23] = make_landmark(0.42, 0.75)   # 左髋
+    lm[24] = make_landmark(0.58, 0.75)   # 右髋
     return lm
 
 
 def make_lean_forward_landmarks():
-    """前倾: 鼻-肩-髋连线向前倾斜"""
+    """前倾: 鼻-肩连线与垂直线有明显夹角 (>15度)"""
     lm = np.zeros((33, 4))
-    # 鼻子和肩膀 x 坐标向前 (远离髋部基准)
-    lm[0] = make_landmark(0.5, 0.25)
-    lm[7] = make_landmark(0.44, 0.26)
-    lm[8] = make_landmark(0.56, 0.26)
-    lm[11] = make_landmark(0.38, 0.45)
-    lm[12] = make_landmark(0.62, 0.45)
+    lm[0] = make_landmark(0.6, 0.25)     # 鼻子前倾右移
+    lm[7] = make_landmark(0.52, 0.26)    # 左耳
+    lm[8] = make_landmark(0.68, 0.26)    # 右耳
+    lm[11] = make_landmark(0.4, 0.45)    # 左肩
+    lm[12] = make_landmark(0.6, 0.45)    # 右肩
     lm[23] = make_landmark(0.42, 0.75)
     lm[24] = make_landmark(0.58, 0.75)
     return lm
@@ -120,16 +118,18 @@ class TestSlouchDetection:
 
     def test_slouch_detected(self):
         lm = make_slouch_landmarks()
-        # 注意: 模拟数据可能不会精确触发驼背判定
-        # 这里测试函数不抛异常、返回 bool
         result = _check_slouch(lm, threshold=15.0)
-        assert isinstance(result, bool)
+        assert result is True
 
 
 class TestLeanForwardDetection:
     def test_normal_not_lean(self):
         lm = make_normal_landmarks()
         assert not _check_lean_forward(lm, threshold=15.0)
+
+    def test_lean_forward_detected(self):
+        lm = make_lean_forward_landmarks()
+        assert _check_lean_forward(lm, threshold=15.0) is True
 
 
 class TestHeadTiltDetection:
@@ -140,7 +140,7 @@ class TestHeadTiltDetection:
     def test_tilt_detected(self):
         lm = make_head_tilt_landmarks()
         result = _check_head_tilt(lm, threshold=10.0)
-        assert isinstance(result, bool)
+        assert result is True
 
 
 class TestPostureAnalyzer:

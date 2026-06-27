@@ -1,6 +1,7 @@
 import math
 import os
 import urllib.request
+import cv2
 import numpy as np
 from dataclasses import dataclass, field
 import mediapipe as mp
@@ -155,9 +156,5 @@ class PostureAnalyzer:
         return result
 
     def reset(self):
-        self.detector.close()
-        model_path = _get_model_path()
-        self.detector = PoseLandmarker.create_from_model_path(model_path)
-
-
-import cv2
+        # PoseLandmarker 使用 IMAGE 模式，无状态，无需重置
+        pass
