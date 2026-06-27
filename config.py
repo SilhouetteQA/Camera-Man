@@ -10,7 +10,7 @@ class AppConfig:
     lean_forward_threshold: float = 25.0
     head_tilt_threshold: float = 10.0
     sedentary_threshold: int = 60
-    phone_use_threshold: int = 20
+    phone_use_threshold: int = 10
     debounce_frames: int = 3
     cooldown_minutes: int = 5
     vision_verify_enabled: bool = False  # 托盘菜单手动开关

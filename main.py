@@ -159,6 +159,9 @@ class App:
                     if verification:
                         m3_raw = verification["judgment"]
                         m3 = self._parse_m3_judgment(m3_raw)
+                        # 调试: 打印本地 vs M3 对比
+                        print(f"[M3] 本地={result.slouch}/{result.lean_forward}/{result.head_tilt} "
+                              f"M3={m3.get('slouch','?')}/{m3.get('lean_forward','?')}/{m3.get('head_tilt','?')}")
                         # M3 二次确认: 本地检测项需要 M3 也确认为 True 才保留
                         for t in ["slouch", "lean_forward", "head_tilt"]:
                             local_val = getattr(result, t)
@@ -166,11 +169,14 @@ class App:
                             # 本地和 M3 都认为是 True → 确认；任一为 False → 清除
                             if local_val and not m3_val:
                                 setattr(result, t, False)
+                                print(f"[M3] {t}: 本地=True M3=False → 清除")
                         result.triggered = [
                             t for t in ["slouch", "lean_forward", "head_tilt"]
                             if getattr(result, t)
                         ]
                         result.severity = "severe" if result.triggered else None
+                    else:
+                        print(f"[M3] 调用未返回结果 (冷却中或API失败)")
 
                 # 去抖
                 confirmed = self.state_machine.update(result)
