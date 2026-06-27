@@ -28,12 +28,12 @@ class TestAppConfig:
         assert cfg.vision_verify_enabled is False
 
     def test_minmax_api_available_with_env(self, monkeypatch):
-        monkeypatch.setenv("minmax_api", "sk-test-123")
+        monkeypatch.setenv("minimax_api", "sk-test-123")
         cfg = AppConfig()
         assert cfg.minmax_api_available is True
 
     def test_minmax_api_not_available_without_env(self, monkeypatch):
-        monkeypatch.delenv("minmax_api", raising=False)
+        monkeypatch.delenv("minimax_api", raising=False)
         cfg = AppConfig()
         assert cfg.minmax_api_available is False
 

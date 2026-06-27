@@ -19,4 +19,4 @@ class AppConfig:
     @property
     def minmax_api_available(self) -> bool:
         """环境变量中是否有 API Key（仅表示可用，不表示启用）"""
-        return "minmax_api" in os.environ
+        return "minimax_api" in os.environ

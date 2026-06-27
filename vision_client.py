@@ -8,7 +8,7 @@ from config import AppConfig
 class VisionClient:
     def __init__(self, config: AppConfig):
         self.config = config
-        self._api_key = os.environ.get("minmax_api", "")
+        self._api_key = os.environ.get("minimax_api", "")
         self._last_verify_time: float = 0.0
 
     @property
