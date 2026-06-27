@@ -73,6 +73,7 @@ class App:
         self.state_machine = StateMachine(self.config)
         self.sedentary = SedentaryTimer(self.config)
         self._running = False
+        self._loop_thread = None
 
     def start(self):
         self.camera.start()
@@ -83,7 +84,8 @@ class App:
     def pause(self):
         self._running = False
         # 等待 daemon 线程退出后再操作共享状态 (避免 SedentaryTimer 竞态)
-        self._loop_thread.join(timeout=1.0)
+        if self._loop_thread is not None:
+            self._loop_thread.join(timeout=1.0)
         self.camera.stop()
         self.analyzer.reset()
         # 此时 _loop 已退出, 安全重置久坐计时器

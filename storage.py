@@ -29,9 +29,8 @@ CREATE TABLE IF NOT EXISTS daily_stats (
 UPSERT_STATS = """
 INSERT INTO daily_stats (date, total_sitting_minutes, slouch_count,
     lean_forward_count, head_tilt_count, sedentary_alerts, severe_alerts)
-VALUES (?, 1, ?, ?, ?, ?, ?)
+VALUES (?, 0, ?, ?, ?, ?, ?)
 ON CONFLICT(date) DO UPDATE SET
-    total_sitting_minutes = total_sitting_minutes + 1,
     slouch_count = slouch_count + excluded.slouch_count,
     lean_forward_count = lean_forward_count + excluded.lean_forward_count,
     head_tilt_count = head_tilt_count + excluded.head_tilt_count,
