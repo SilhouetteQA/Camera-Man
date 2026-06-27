@@ -1,6 +1,7 @@
 import time
+import ctypes
+import threading
 import winsound
-from plyer import notification
 
 
 EVENT_LABELS = {
@@ -14,6 +15,11 @@ SEVERITY_LABELS = {
     "mild": "轻度",
     "severe": "严重",
 }
+
+
+def _show_popup(title: str, message: str):
+    """Windows MessageBox 弹窗，在独立线程中运行避免阻塞"""
+    ctypes.windll.user32.MessageBoxW(0, message, title, 0x40 | 0x1)
 
 
 class AlertManager:
@@ -38,10 +44,8 @@ class AlertManager:
         if event_type == "sedentary":
             message = "你已经久坐超过 60 分钟，起身活动一下吧"
 
-        try:
-            notification.notify(title=title, message=message, timeout=5)
-        except Exception:
-            pass
+        # 弹窗在独立线程，不阻塞主循环
+        threading.Thread(target=_show_popup, args=(title, message), daemon=True).start()
 
         try:
             winsound.MessageBeep(winsound.MB_ICONEXCLAMATION)
