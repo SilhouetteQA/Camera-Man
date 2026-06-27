@@ -5,16 +5,17 @@ USB 摄像头实时坐姿监控，检测驼背/前倾/歪头/久坐/手机使用
 ## 快速开始
 
 ```bash
-# 1. 安装依赖
+# 1. 首次使用：安装依赖（只需执行一次）
 pip install opencv-python mediapipe pystray Pillow
 
-# 2. 启动（需要摄像头）
+# 2. 进入项目目录，启动
+cd "D:\AI project\camera man"
 python main.py
 
-# 3. 系统托盘会出现蓝色图标，右键 → 开始监控
+# 3. 系统托盘出现蓝色图标，右键 → 开始监控
 ```
 
-首次运行 MediaPipe 会自动下载姿态模型（~5MB），等待几秒即可。
+首次运行 MediaPipe 会自动下载姿态模型（~5MB），等待几秒即可。后续使用直接执行第 2 步。
 
 ## 功能
 
