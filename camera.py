@@ -14,6 +14,7 @@ class CameraService:
     def start(self) -> bool:
         if self.is_running:
             return True
+        self.stop()  # 释放可能存在的旧句柄（如摄像头断开后的残留）
         self._cap = cv2.VideoCapture(self.device_id, cv2.CAP_DSHOW)
         if not self._cap.isOpened():
             self._cap = None
