@@ -29,6 +29,7 @@ class PostureResult:
     slouch: bool = False
     lean_forward: bool = False
     head_tilt: bool = False
+    phone_use: bool = False
     confidence: float = 0.0
     severity: str | None = None
     triggered: list[str] = field(default_factory=list)
@@ -106,6 +107,26 @@ def _check_head_tilt(landmarks: np.ndarray, threshold: float) -> bool:
     return angle > threshold
 
 
+def _check_phone_use(landmarks: np.ndarray) -> bool:
+    """手机使用判定: 手腕靠近头部 + 头部下倾"""
+    nose = landmarks[0]
+    left_wrist = landmarks[15]
+    right_wrist = landmarks[16]
+    shoulder_mid = _midpoint(landmarks[11], landmarks[12])
+
+    # 条件1: 任意手腕距离鼻子较近 (归一化坐标阈值 ~0.18)
+    wrist_to_nose = min(
+        float(np.linalg.norm(left_wrist[:2] - nose[:2])),
+        float(np.linalg.norm(right_wrist[:2] - nose[:2])),
+    )
+    hand_near_face = wrist_to_nose < 0.18
+
+    # 条件2: 头部下倾 (鼻子 y 坐标低于肩膀中点)
+    head_down = nose[1] > shoulder_mid[1]
+
+    return hand_near_face and head_down
+
+
 def _classify_posture(landmarks: np.ndarray, config: AppConfig) -> PostureResult:
     triggered = []
     if _check_slouch(landmarks, config.slouch_threshold):
@@ -114,6 +135,8 @@ def _classify_posture(landmarks: np.ndarray, config: AppConfig) -> PostureResult
         triggered.append("lean_forward")
     if _check_head_tilt(landmarks, config.head_tilt_threshold):
         triggered.append("head_tilt")
+    if _check_phone_use(landmarks):
+        triggered.append("phone_use")
 
     severity = "severe" if triggered else None
 
@@ -122,6 +145,7 @@ def _classify_posture(landmarks: np.ndarray, config: AppConfig) -> PostureResult
         slouch="slouch" in triggered,
         lean_forward="lean_forward" in triggered,
         head_tilt="head_tilt" in triggered,
+        phone_use="phone_use" in triggered,
         confidence=1.0,  # 规则判定置信度
         severity=severity,
         triggered=triggered,

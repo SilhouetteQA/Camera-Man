@@ -9,6 +9,7 @@ EVENT_LABELS = {
     "lean_forward": "前倾提醒",
     "head_tilt": "歪头提醒",
     "sedentary": "久坐提醒",
+    "phone_use": "手机使用提醒",
 }
 
 SEVERITY_LABELS = {
@@ -43,6 +44,8 @@ class AlertManager:
         message = "请调整坐姿，保持脊柱直立"
         if event_type == "sedentary":
             message = "你已经久坐超过 60 分钟，起身活动一下吧"
+        if event_type == "phone_use":
+            message = "你已经看手机超过 20 分钟，放下手机休息一下吧"
 
         # 弹窗在独立线程，不阻塞主循环
         threading.Thread(target=_show_popup, args=(title, message), daemon=True).start()

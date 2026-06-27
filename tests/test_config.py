@@ -10,6 +10,7 @@ class TestAppConfig:
         assert cfg.lean_forward_threshold == 15.0
         assert cfg.head_tilt_threshold == 10.0
         assert cfg.sedentary_threshold == 60
+        assert cfg.phone_use_threshold == 20
         assert cfg.debounce_frames == 3
         assert cfg.cooldown_minutes == 5
         assert cfg.vision_verify_cooldown == 30
