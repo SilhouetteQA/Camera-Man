@@ -28,11 +28,29 @@ class VisionClient:
 
         self._last_verify_time = now
 
+        # 将本地判定结果传给 M3，让它做二次确认
+        local_info = ""
+        if local_result is not None and local_result.person_present:
+            parts = []
+            if local_result.slouch:
+                parts.append("驼背=是")
+            if local_result.lean_forward:
+                parts.append("前倾=是")
+            if local_result.head_tilt:
+                parts.append("歪头=是")
+            if parts:
+                local_info = f"本地算法判定: {', '.join(parts)}。"
+            else:
+                local_info = "本地算法判定: 坐姿正常。"
+
         prompt = (
-            "分析这张图片中人物的坐姿。请判断是否存在以下问题:"
-            "驼背(肩膀前倾)、前倾(上半身向前倾斜)、歪头(头部向一侧倾斜)。"
+            f"你是一个坐姿检测助手。请仔细观察图片中人物的坐姿。{local_info}"
+            "请根据你的观察独立判断，确认或纠正本地算法的判定。参考标准:"
+            "驼背 = 肩膀明显前移、上背部弯曲呈弧形、头部前伸;"
+            "前倾 = 整个上半身向前大幅倾斜;"
+            "歪头 = 头部向一侧明显歪斜。"
             "返回 JSON 格式: {\"slouch\": bool, \"lean_forward\": bool, "
-            "\"head_tilt\": bool, \"person_present\": bool, \"confidence\": float}"
+            "\"head_tilt\": bool, \"person_present\": bool}"
         )
 
         payload = json.dumps({

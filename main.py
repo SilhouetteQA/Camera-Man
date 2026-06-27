@@ -159,11 +159,13 @@ class App:
                     if verification:
                         m3_raw = verification["judgment"]
                         m3 = self._parse_m3_judgment(m3_raw)
-                        # 对比: 如果 M3 判断不一致，以 M3 为准
-                        result.slouch = m3.get("slouch", result.slouch)
-                        result.lean_forward = m3.get("lean_forward", result.lean_forward)
-                        result.head_tilt = m3.get("head_tilt", result.head_tilt)
-                        result.person_present = m3.get("person_present", result.person_present)
+                        # M3 二次确认: 本地检测项需要 M3 也确认为 True 才保留
+                        for t in ["slouch", "lean_forward", "head_tilt"]:
+                            local_val = getattr(result, t)
+                            m3_val = m3.get(t, local_val)
+                            # 本地和 M3 都认为是 True → 确认；任一为 False → 清除
+                            if local_val and not m3_val:
+                                setattr(result, t, False)
                         result.triggered = [
                             t for t in ["slouch", "lean_forward", "head_tilt"]
                             if getattr(result, t)
