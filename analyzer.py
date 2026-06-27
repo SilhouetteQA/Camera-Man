@@ -114,7 +114,7 @@ def _check_phone_use(landmarks: np.ndarray) -> bool:
 
     # 鼻子与肩膀的垂直距离: 正常看屏幕时约 0.30，低头看手机时明显缩小
     nose_to_shoulder = shoulder_mid[1] - nose[1]
-    return nose_to_shoulder < 0.22
+    return nose_to_shoulder < 0.39
 
 
 def _classify_posture(landmarks: np.ndarray, config: AppConfig) -> PostureResult:

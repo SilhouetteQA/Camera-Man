@@ -6,9 +6,9 @@ class TestAppConfig:
         cfg = AppConfig()
         assert cfg.camera_device_id == 0
         assert cfg.sample_interval == 5.0
-        assert cfg.slouch_threshold == 25.0
-        assert cfg.lean_forward_threshold == 25.0
-        assert cfg.head_tilt_threshold == 10.0
+        assert cfg.slouch_threshold == 5.0
+        assert cfg.lean_forward_threshold == 10.0
+        assert cfg.head_tilt_threshold == 4.0
         assert cfg.sedentary_threshold == 60
         assert cfg.phone_use_threshold == 10
         assert cfg.debounce_frames == 3
@@ -47,4 +47,4 @@ class TestAppConfig:
         assert cfg.slouch_threshold == 20.0
         assert cfg.cooldown_minutes == 10
         # 未指定的保持默认
-        assert cfg.head_tilt_threshold == 10.0
+        assert cfg.head_tilt_threshold == 4.0
