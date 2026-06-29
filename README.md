@@ -5,17 +5,20 @@
 ## 快速开始
 
 ```bash
-# 1. 首次使用：安装依赖（只需执行一次）
+# 1. 克隆仓库
+git clone https://github.com/SilhouetteQA/Camera-Man.git
+cd Camera-Man
+
+# 2. 安装依赖（只需执行一次）
 pip install opencv-python mediapipe pystray Pillow
 
-# 2. 进入项目目录，启动
-cd "D:\AI project\camera man"
+# 3. 启动
 python main.py
 
-# 3. 系统托盘出现蓝色图标，右键 → 开始监控
+# 4. 系统托盘出现蓝色图标，右键 → 开始监控
 ```
 
-首次运行 MediaPipe 会自动下载姿态模型（~5MB），等待几秒即可。后续使用直接执行第 2 步。
+首次运行 MediaPipe 会自动下载姿态模型（~5MB），等待几秒即可。后续使用直接执行第 3 步。
 
 ## 功能
 
