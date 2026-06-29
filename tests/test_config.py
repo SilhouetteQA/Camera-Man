@@ -13,29 +13,10 @@ class TestAppConfig:
         assert cfg.phone_use_threshold == 10
         assert cfg.debounce_frames == 3
         assert cfg.cooldown_minutes == 5
-        assert cfg.vision_verify_enabled is False
-        assert cfg.vision_verify_cooldown == 30
-
-    def test_vision_verify_disabled_by_default(self):
-        cfg = AppConfig()
-        assert cfg.vision_verify_enabled is False
-
-    def test_vision_verify_can_be_toggled(self):
-        cfg = AppConfig()
-        cfg.vision_verify_enabled = True
-        assert cfg.vision_verify_enabled is True
-        cfg.vision_verify_enabled = False
-        assert cfg.vision_verify_enabled is False
-
-    def test_minmax_api_available_with_env(self, monkeypatch):
-        monkeypatch.setenv("minimax_api", "sk-test-123")
-        cfg = AppConfig()
-        assert cfg.minmax_api_available is True
-
-    def test_minmax_api_not_available_without_env(self, monkeypatch):
-        monkeypatch.delenv("minimax_api", raising=False)
-        cfg = AppConfig()
-        assert cfg.minmax_api_available is False
+        assert cfg.frames_per_minute == 12
+        assert cfg.phone_nose_threshold == 0.39
+        assert cfg.phone_grace_minutes == 2
+        assert cfg.pause_join_timeout == 1.0
 
     def test_custom_values(self):
         cfg = AppConfig(

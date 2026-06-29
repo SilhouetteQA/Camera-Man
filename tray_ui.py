@@ -14,13 +14,10 @@ def _create_icon_image():
 
 
 class TrayController:
-    def __init__(self, on_start, on_pause, on_exit, on_toggle_vision, vision_state, minmax_available):
+    def __init__(self, *, on_start, on_pause, on_exit):
         self.on_start = on_start
         self.on_pause = on_pause
         self.on_exit = on_exit
-        self.on_toggle_vision = on_toggle_vision
-        self._vision_state = vision_state  # list[bool] 可变引用
-        self._minmax_available = minmax_available  # bool
         self._running = False
         self._paused = True
         self._icon = None
@@ -36,10 +33,6 @@ class TrayController:
             self._paused = True
             self._icon.update_menu()
 
-        def make_toggle_vision():
-            self.on_toggle_vision()
-            self._icon.update_menu()
-
         def make_exit():
             self.on_pause()
             self.on_exit()
@@ -53,14 +46,9 @@ class TrayController:
             "暂停", make_pause,
             enabled=lambda item: not self._paused
         )
-        vision_item = pystray.MenuItem(
-            "MinimaX 视觉验证", make_toggle_vision,
-            checked=lambda item: self._vision_state[0],
-            enabled=lambda item: self._minmax_available
-        )
         exit_item = pystray.MenuItem("退出", make_exit)
 
-        return pystray.Menu(start_item, pause_item, vision_item, pystray.Menu.SEPARATOR, exit_item)
+        return pystray.Menu(start_item, pause_item, pystray.Menu.SEPARATOR, exit_item)
 
     def run(self):
         self._icon = pystray.Icon(
